@@ -20,8 +20,8 @@ body {
     text-align: right;
 }
 
-.title-section h1{
-    font-family: 'Nunito Sans';
+.title-section h2{
+    font-family: 'Lobster', cursive;
 }
 
 .post-content{

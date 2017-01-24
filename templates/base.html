@@ -17,6 +17,7 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito+Sans" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
 
         <!-- Custom CSS -->
         <link type="text/css" rel="stylesheet" href="/static/main.css" media="screen">
@@ -34,7 +35,7 @@
 
                     <div class="title-section col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-2 col-xs-12">
                     {% if user %}
-                        <h1>{{user.name}}</h1>
+                        <h2>{{user.name}}</h2>
                         <p>
                             <a class="btn btn-success" href="/newpost">New Post</a>
                             <a class="btn btn-primary" href="/logout">Logout</a>
