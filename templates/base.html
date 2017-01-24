@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, intial-scale=1">
+
+        <!-- Blog metadata -->
+        <title>Bloggerspot</title>
+        <meta name="description" property="og:description"
+            content="A blog project by Alexander Lin; part of Udacity's Full Stack Developer Nanodegree.">
+        <meta name="keywords" content="udacity project, blog, full stack">
+
+        <!-- Framework CSS Files -->
+        <link href="/static/frameworks/bootstrap.min.css" rel="stylesheet" type="text/css" media="screen">
+        <link href="/static/frameworks/animate.min.css" rel="stylesheet" type="text/css" media="screen">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Nunito+Sans" rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link type="text/css" rel="stylesheet" href="/static/main.css" media="screen">
+    </head>
+
+    <body>
+        <!-- Content -->
+        <div class="container">
+            <header class="portfolio-header">
+                <div class="row">
+                    <div class="logo-section col-md-4 col-sm-4 col-xs-12">
+                        <a href="/"><img class="media-object" src="/static/img/logo.svg"
+                             alt="Logo"></a>
+                    </div>
+
+                    <div class="title-section col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-2 col-xs-12">
+                    {% if user %}
+                        <h1>{{user.name}}</h1>
+                        <p>
+                            <a class="btn btn-success" href="/newpost">New Post</a>
+                            <a class="btn btn-primary" href="/logout">Logout</a>
+                        </p>
+                    {% else %}
+                        <p class="login-options">
+                          <a class="btn btn-primary" href="/login">Login</a>
+                          <a class="btn btn-danger" href="/signup">Signup</a>
+                        </p>
+                    {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Section -->
+            <section id="content">
+                {% block content %}
+                {% endblock %}
+            </section>
+
+            <hr>
+
+            <!-- Footer -->
+            <footer class="portfolio-footer">
+                <p class="pull-right"><a href="#">Back to top</a></p>
+            </footer>
+        </div>
+
+            <!-- Framework JS files -->
+            <script src="/static/frameworks/jquery.js" type="application/javascript"></script>
+            <script src="/static/frameworks/bootstrap.min.js" type="application/javascript"></script>
+
+    </body>
+</html>

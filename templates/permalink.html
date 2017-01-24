@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-7">
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{error}}
+                </div>
+            {% endif %}
+        </div>
+        {{post.render() | safe}}
+    </div>
+
+    <div class="row">
+        <div class="sub-work col-md-12">
+            <a href="/{{post.key().id()}}/like" class="btn btn-primary">Like {{post.likes}}</a>
+        </div>
+
+        <div class="sub-work col-md-12">
+            {% for c in post.comments %}
+            <blockquote>
+                <a class="comment-delete btn btn-danger pull-right" href="/{{post.key().id()}}/deletecomment/{{c.key().id()}}">Delete</a>
+                <a class="comment-edit btn btn-primary pull-right" href="/{{post.key().id()}}/updatecomment/{{c.key().id()}}">Edit</a>
+                <p>{{ c.comment }}</p>
+                <footer>{{ c.parent().name }}</footer>
+            </blockquote>
+            {% endfor %}
+            <a href="/{{post.key().id()}}/newcomment">add new comment</a>
+        </div>
+    </div>
+{% endblock %}

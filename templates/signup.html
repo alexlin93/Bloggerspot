@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+
+  <div class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1">
+    <h2>Sign Up</h2>
+  </div>
+
+  <div id="singup-form-container" class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1">
+    <form method="post" role="form">
+
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" class="form-control" id="username" name="username" value="{{username}}">
+        {% if error1 %}
+        <div class="alert alert-danger" role="alert">
+          {{error1}}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" class="form-control" id="password" name="password" value="">
+        {% if error2 %}
+        <div class="alert alert-danger" role="alert">
+          {{error2}}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="verify">Verify Password:</label>
+        <input type="password" class="form-control" id="verify" name="verify" value="">
+        {% if error3 %}
+        <div class="alert alert-danger" role="alert">
+          {{error3}}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email (optional):</label>
+        <input type="email" class="form-control" id="email" name="email" value="{{email}}">
+        {% if error4 %}
+        <div class="alert alert-danger" role="alert">
+          {{error4}}
+        </div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+  </div>
+
+    <div class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-10 col-xs-offset-1">
+        <p>Already have an account?<a class="btn btn-danger" href="/login">
+        Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

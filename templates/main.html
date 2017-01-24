@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row">
+    <div class="sub-work col-md-12">
+        <h2>bloggerspot</h2>
+    </div>
+</div>
+
+    {% for p in posts %}
+    <div class="row">
+        {{ p.render() | safe }}
+    </div>
+
+<div class="comment-count-container">
+  <span class="comment-count">{{p.comments.count()}} comments</span>
+  <a href="/{{p.key().id()}}/newcomment">(add new comment)</a>
+</div>
+
+<div align = "left">
+    <a href="/{{p.key().id()}}/like" class="btn btn-primary">Like {{p.likes}}</a>
+    <a href="/{{p.key().id()}}/updatepost" class="btn btn-primary">Edit<a>
+    <a href="/{{p.key().id()}}/deletepost" class="btn btn-primary">Delete<a>
+    </div>
+<br>
+  {% endfor %}
+
+{% endblock %}

@@ -1,0 +1,60 @@
+/* Content */
+body {
+    background-color: #fafaf6;
+    font-family: 'Nunito Sans', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+
+    width: 800px;
+    margin: 0 auto;
+    padding: 10px;
+    color: #333;
+}
+
+/* Header Styles */
+.logo-section .media-object{
+    width: 150px;
+    height: 150px;
+}
+
+.title-section {
+    text-align: right;
+}
+
+.title-section h1{
+    font-family: 'Nunito Sans';
+}
+
+.post-content{
+        margin: 15px 0;
+}
+
+#post-delete, .comment-delete{
+    margin-left: 10px;
+}
+
+@media screen and (max-width: 767px) {
+    .logo-section .media-object{
+        margin: auto;
+    }
+
+    .title-section {
+        text-align: center;
+    }
+
+    .post .post-heading{
+        text-align: center;
+    }
+}
+
+/* Footer Styles */
+footer .fa-heart-o{
+    color: #F44336;
+}
+
+.login-options{
+    margin: 10px;
+}
+
+.comment-form{
+    margin: 20px 0 20px 0;
+}
