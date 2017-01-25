@@ -17,24 +17,26 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
 
 
+# Helper Functions
 def render_str(template, **params):
+    """Strings together the parameters for jinja templates"""
     t = jinja_env.get_template(template)
     return t.render(params)
 
 
-# takes the user's password and hashes it with the secret
 def make_secure_val(val):
+    """Takes hashed pw and adds salt; this will be the cookie"""
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
 
 
-# makes sure that the hashed password is secure
 def check_secure_val(secure_val):
+    """Checks if val is secured by running make_secure_val again"""
     val = secure_val.split('|')[0]
     if secure_val == make_secure_val(val):
         return val
 
 
-# main arguments that other classes will pass through
+# Main Handler
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -47,27 +49,27 @@ class Handler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
-    # sets a cookie with name as name and value as val
+    """Sets the cookie as the name, hashed password plus salt"""
     def set_secure_cookie(self, name, val):
         cookie_val = make_secure_val(val)
         self.response.headers.add_header(
             'Set-Cookie',
             '%s=%s; Path=/' % (name, cookie_val))
 
-    # reads the cookie in the request
+    """Reads the cookie in the request"""
     def read_secure_cookie(self, name):
         cookie_val = self.request.cookies.get(name)
         return cookie_val and check_secure_val(cookie_val)
 
-    # sets the cookie with user id and enters into db
+    """Sets the cookie with user id and enters into db"""
     def login(self, user):
         self.set_secure_cookie('user_id', str(user.key().id()))
 
-    # deletes the cookie by setting user to nothing
+    """Deletes the cookie by setting user to nothing"""
     def logout(self):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
-    # checks cookie to see if user is logged in
+    """Checks cookie to see if user is logged in"""
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
@@ -114,7 +116,7 @@ class Signup(Handler):
 
         params = dict(username=self.username,
                       email=self.email)
-
+        """Val is None then errors will be in params"""
         if not val_username(self.username):
             params['error1'] = "That's not a valid username."
             have_error = True
@@ -129,7 +131,7 @@ class Signup(Handler):
         if not val_email(self.email):
             params['error4'] = "That's not a valid email."
             have_error = True
-
+        """If there are errors then signup.html will render with params"""
         if have_error:
             self.render('signup.html', **params)
         else:
@@ -141,8 +143,10 @@ class Signup(Handler):
 
 class Register(Signup):
     def done(self):
-        # makes sure the user doesn't already exist
-        # if it already exists, renders error msg
+        """
+        Makes sure the user doesn't already exist
+        If it already exists, renders error msg
+        """
         u = User.by_name(self.username)
         if u:
             msg = 'That user already exists.'
@@ -151,8 +155,10 @@ class Register(Signup):
             u = User.register(self.username, self.password, self.email)
             print "name ===", self.username
             u.put()
-            # if user is valid then user info is
-            # stored to db and user redirected to main pg
+            """
+            If user is valid then user info is
+            Stored to db and user redirected to main pg
+            """
             self.login(u)
             return self.redirect('/')
 
@@ -164,9 +170,10 @@ class Login(Handler):
     def post(self):
         username = self.request.get('username')
         password = self.request.get('password')
-
-        # from @classmethod login, returns user
-        # if info is valid combination
+        """
+        From @classmethod login, returns user
+        If info is valid combination
+        """
         u = User.login(username, password)
         if u:
             self.login(u)
@@ -182,19 +189,21 @@ class Logout(Handler):
         self.redirect('/')
 
 
-# blog stuff
+# Main Page and Post Pages
 def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
 
 
 class MainPage(Handler):
     def get(self):
+        """Main page will be all the posts with most recent on top"""
         posts = Post.all().order('-created')
         self.render('main.html', posts=posts)
 
 
 class PostHandler(Handler):
     def get(self, post_id):
+        """Renders the post from db using post_id into a permalink page"""
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         print post
@@ -205,6 +214,7 @@ class PostHandler(Handler):
         self.render("permalink.html", post=post)
 
 
+# Error Pages
 class LikeError(Handler):
     def get(self):
         self.write("Oops! You can't like your own post & only like once!")
@@ -215,14 +225,29 @@ class EditDeleteError(Handler):
         self.write("You can only edit or delete posts you have created.")
 
 
+class CommentError(Handler):
+    def get(self):
+        self.write('You can only edit or delete comments you have created.')
+
+
+# New Post
 class NewPost(Handler):
     def get(self):
+        """
+        Make sure only a user creates a newpost
+        Or redirects to login
+        """
         if self.user:
             self.render("newpost.html")
         else:
             return self.redirect("/login")
 
     def post(self):
+        """
+        If not a user, redirects to main page
+        If the post is created right it gets put into Post db
+        But if not it returns an error
+        """
         if not self.user:
             return self.redirect('/')
 
@@ -245,16 +270,22 @@ class NewPost(Handler):
                                content=content, error=error)
 
 
+# Edit Post
 class UpdatePost(Handler):
     def get(self, post_id):
+        """
+        If not a user, redirects to login
+        If the user is the author,
+        Edit page renders with the post content
+        """
         if not self.user:
             self.redirect('/login')
         else:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            n1 = post.created_by
-            n2 = self.user.name
-            if n1 == n2:
+            author = post.created_by
+            current_user = self.user.name
+            if author == current_user:
                 key = db.Key.from_path('Post', int(post_id), parent=blog_key())
                 post = db.get(key)
                 print "post = ", post
@@ -265,15 +296,20 @@ class UpdatePost(Handler):
                 return self.redirect("/editDeleteError")
 
     def post(self, post_id):
+        """
+        If not a user, redirects to login
+        If the post has a post_id and it's the author,
+        Post or p is updated with new subject and content
+        """
         if not self.user:
             self.redirect("/login")
 
         if post_id:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             p = db.get(key)
-            n1 = p.created_by
-            n2 = self.user.name
-            if n1 == n2:
+            author = p.created_by
+            current_user = self.user.name
+            if author == current_user:
                 p.subject = self.request.get('subject')
                 p.content = self.request.get('content')
                 p.put()
@@ -282,8 +318,14 @@ class UpdatePost(Handler):
                 print "pid = ", str(pid)
 
 
+# How to Like Posts
 class LikePost(Handler):
     def get(self, post_id):
+        """
+        If not a user, redirects to login
+        If the post has a post_id and it's the author,
+        Post or p is updated with new subject and content
+        """
         if not self.user:
             self.redirect('/login')
         else:
@@ -301,17 +343,23 @@ class LikePost(Handler):
                 return self.redirect('/')
 
 
+# How to Delete Posts
 class DeletePost(Handler):
     def get(self, post_id):
+        """
+        If not a user, redirects to login
+        If current user is the author,
+        Post is deleted or else error page renders
+        """
         if not self.user:
             self.redirect('/login')
         else:
             key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             post = db.get(key)
-            n1 = post.created_by
-            n2 = self.user.name
+            author = post.created_by
+            current_user = self.user.name
 
-            if n1 == n2:
+            if author == current_user:
                 key = db.Key.from_path('Post', int(post_id), parent=blog_key())
                 post = db.get(key)
                 post.delete()
@@ -320,9 +368,13 @@ class DeletePost(Handler):
                 return self.redirect("/editDeleteError")
 
 
+# How to Make a New Comment
 class NewComment(Handler):
     def get(self, post_id):
-        # Shows the new comment page
+        """
+        If not a user, redirects to login,
+        The post is rendered
+        """
         if not self.user:
             error = "You must be logged in to comment"
             return self.redirect("/login", error=error)
@@ -333,16 +385,18 @@ class NewComment(Handler):
                            pkey=post.key())
 
     def post(self, post_id):
-        # If a ew comment was made,
-        # this makes sure post_id exists
+        """
+        If a new comment was made,
+        This makes sure post_id exists
+        """
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
         if not post:
             return self.error(404)
-        # make sure user is signed in
+        """Makes sure user is signed in"""
         if not self.user:
             return self.redirect('login')
-        # creates the comment
+        """Creates the comment"""
         comment = self.request.get('comment')
         if comment:
             c = Comment(comment=comment, post=post_id, parent=self.user.key())
@@ -354,8 +408,15 @@ class NewComment(Handler):
                                error=error)
 
 
+# How to Edit a Comment
 class UpdateComment(Handler):
     def get(self, post_id, comment_id):
+        """
+        Looks up comments by the current user,
+        If the comment id matches with current user,
+        Comment page is rendered
+        If not, error page is rendered
+        """
         post = Post.get_by_id(int(post_id), parent=blog_key())
         comment = Comment.get_by_id(int(comment_id), parent=self.user.key())
         if comment:
@@ -365,6 +426,10 @@ class UpdateComment(Handler):
             return self.redirect('/commenterror')
 
     def post(self, post_id, comment_id):
+        """
+        Comment is put into user key with the same id
+        Redirects to post page after
+        """
         comment = Comment.get_by_id(int(comment_id), parent=self.user.key())
         if comment.parent().key().id() == self.user.key().id():
             comment.comment = self.request.get('comment')
@@ -372,24 +437,26 @@ class UpdateComment(Handler):
         return self.redirect('/%s' % str(post_id))
 
 
+# How to Delete a Comment
 class DeleteComment(Handler):
     def get(self, post_id, comment_id):
+        """
+        Looks up comments by the current user,
+        If the comment id matches with current user,
+        And If the current user is the author,
+        Then comment is deleted and redirect to post page
+        Else, error page is rendered
+        """
         post = Post.get_by_id(int(post_id), parent=blog_key())
-        # This ensures the user created the comment.
         comment = Comment.get_by_id(int(comment_id), parent=self.user.key())
         if comment:
-            n1 = post.created_by
-            n2 = self.user.name
-            if n1 == n2:
+            author = post.created_by
+            current_user = self.user.name
+            if author == current_user:
                 comment.delete()
                 return self.redirect('/%s' % str(post_id))
         else:
             return self.redirect('/commenterror')
-
-
-class CommentError(Handler):
-    def get(self):
-        self.write('You can only edit or delete comments you have created.')
 
 
 app = webapp2.WSGIApplication([('/', MainPage),
